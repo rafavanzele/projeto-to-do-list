@@ -5,6 +5,9 @@ const todoList = document.querySelector('#todo-list')
 const editForm = document.querySelector('#edit-form')
 const editInput = document.querySelector('#edit-input')
 const cancelEditBtn = document.querySelector('#cancel-edit-btn')
+const searchInput = document.querySelector('#search-input')
+const eraseBtn = document.querySelector('.erase-button')
+const filterBtn = document.querySelector('#filter-select')
 
 let oldInputValue
 
@@ -12,7 +15,7 @@ let oldInputValue
 
 // FUNÇÕES
 // 1- criando todo o template de to do list em JS puro:
-const saveTodo = (text) => {
+const saveTodo = (text, save = 0, done = 1) => {
     const todo = document.createElement('div') //criando a div do meu todo list em js
     todo.classList.add('todo') //inserindo a classe todo na minha div criada na linha anterior
 
@@ -39,6 +42,16 @@ const saveTodo = (text) => {
     deleteBtn.classList.add('remove-todo') //add classe finish-todo ao meu button
     deleteBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>' //add o icone ao button
     todo.appendChild(deleteBtn) //add o doneBtn ao meu todo
+
+
+    // utilizando dados da local storage
+    if(done) {
+        todo.classList.add('done')
+    }
+
+    if(save) {
+        saveTodoLocalStorage({text, done})
+    }
 
     //vou pegar a lista e inserir na div todo (linha 68 html)
     todoList.appendChild(todo)
@@ -70,6 +83,53 @@ const updateTodo = (text) => {
             todoTitle.innerText = text
         }
     })
+}
+
+
+
+//botão de busca/search
+const getSearchTodos = (search) => {
+
+    const todos = document.querySelectorAll('.todo')
+
+    todos.forEach((todo) => {
+        let todoTitle = todo.querySelector('h3').innerText.toLowerCase()
+
+        const normalizeSearch = search.toLowerCase()
+
+        todo.style.display = 'flex'
+
+        if(!todoTitle.includes(normalizeSearch)) {
+            todo.style.display = 'none'
+        }
+
+        
+    })
+
+}
+
+
+
+// botão de filtro
+const filterTodos = (filterValue) => {
+    const todos = document.querySelectorAll('.todo')
+
+    switch(filterValue) {
+        case 'all':
+            todos.forEach((todo) => (todo.style.display = 'flex'))
+            break;
+
+        case 'done':
+            todos.forEach((todo) => todo.classList.contains('done') ? (todo.style.display ='flex') : (todo.style.display ='none'))
+            break;
+
+        case 'todo':
+            todos.forEach((todo) => !todo.classList.contains('done') ? (todo.style.display ='flex') : (todo.style.display ='none'))
+            break;
+
+        default:
+        break 
+    }
 }
 
 
@@ -142,3 +202,50 @@ editForm.addEventListener('submit', (e) => {
 
     toggleForms()
 })
+
+
+
+//botão de busca
+searchInput.addEventListener('keyup', (e) => {
+    const search = e.target.value
+
+    getSearchTodos(search)
+})
+
+
+eraseBtn.addEventListener('click', (e) => {
+    e.preventDefault()
+
+    searchInput.value = ''
+
+    searchInput.dispatchEvent(new Event('keyup'))
+})
+
+
+
+//botão filtro
+filterBtn.addEventListener('change', (e) => {
+    const filterValue = e.target.value
+    
+    filterTodos(filterValue)
+    
+})
+
+
+
+//local storage (armazenanto local de informaçõe)
+const getTodosLocalStorage = () => {
+    const todos = JSON.parse(localStorage.getItem('todos')) || []
+    return todos
+}
+
+const saveTodoLocalStorage = (todo) => {
+    // 1 pegar todos os todos da local storage
+    const todos = getTodosLocalStorage()
+
+    // 2 add um novo todo no array do ls
+    todos.push(todo)
+
+    // 3 salvar tudo de novo na ls
+    localStorage.setItem('todos', JSON.stringify(todos))
+}
