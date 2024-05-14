@@ -15,7 +15,7 @@ let oldInputValue
 
 // FUNÇÕES
 // 1- criando todo o template de to do list em JS puro:
-const saveTodo = (text, save = 0, done = 1) => {
+const saveTodo = (text, save = 1, done = 0) => {
     const todo = document.createElement('div') //criando a div do meu todo list em js
     todo.classList.add('todo') //inserindo a classe todo na minha div criada na linha anterior
 
@@ -81,6 +81,8 @@ const updateTodo = (text) => {
 
         if (todoTitle.innerText === oldInputValue) {
             todoTitle.innerText = text
+
+            updateTodoLocalStorage(oldInputValue, text)
         }
     })
 }
@@ -111,7 +113,7 @@ const getSearchTodos = (search) => {
 
 
 // botão de filtro
-const filterTodos = (filterValue) => {
+const filterTodos = (filterValue) => { 
     const todos = document.querySelectorAll('.todo')
 
     switch(filterValue) {
@@ -128,7 +130,7 @@ const filterTodos = (filterValue) => {
             break;
 
         default:
-        break 
+        break; 
     }
 }
 
@@ -163,11 +165,14 @@ document.addEventListener('click', (e) =>{
 
     if (targetEl.classList.contains('finish-todo')) { //mapeando qual elemento (btn) clicou e se possui a classe finish-todo
         parentEl.classList.toggle('done') //com o clique do usuário o botao recebe/remove a classe done
+        updateTodoStatusLocalStorage(todoTitle)
+
     } 
 
 
     if (targetEl.classList.contains('remove-todo')) { //mapeando o btn e add a funcionalidade de remoção
         parentEl.remove()
+        removeTodoLocalStorage(todoTitle)
     }
 
 
@@ -239,6 +244,16 @@ const getTodosLocalStorage = () => {
     return todos
 }
 
+
+
+const loadTodos = () => {
+    const todos = getTodosLocalStorage()
+    todos.forEach((todo) => {
+        saveTodo(todo.text, todo.done, 0)
+    })
+}
+
+
 const saveTodoLocalStorage = (todo) => {
     // 1 pegar todos os todos da local storage
     const todos = getTodosLocalStorage()
@@ -249,3 +264,36 @@ const saveTodoLocalStorage = (todo) => {
     // 3 salvar tudo de novo na ls
     localStorage.setItem('todos', JSON.stringify(todos))
 }
+
+
+
+const removeTodoLocalStorage = (todoText) => {
+    const todos = getTodosLocalStorage()
+
+    const filteredTodos = todos.filter((todo) => todo.text !== todoText)
+
+    localStorage.setItem('todos', JSON.stringify(filteredTodos))
+}
+
+
+
+const updateTodoStatusLocalStorage = (todoText) => {
+    const todos = getTodosLocalStorage()
+
+    todos.map((todo) => todo.text === todoText ? (todo.done = !todo.done) : null)
+
+    localStorage.setItem('todos', JSON.stringify(todos))
+}
+
+
+
+const updateTodoLocalStorage = (todoOldText, todoNewText) => {
+    const todos = getTodosLocalStorage()
+
+    todos.map((todo) => todo.text === todoOldText ? (todo.text = todoNewText) : null)
+
+    localStorage.setItem('todos', JSON.stringify(todos))
+}
+
+
+loadTodos()
